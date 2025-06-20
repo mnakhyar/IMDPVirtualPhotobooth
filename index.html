@@ -10,28 +10,22 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        .frame-selected {
+            box-shadow: 0 0 0 4px #4f46e5;
+            border-radius: 0.5rem;
+        }
         /* Custom styles for the camera view and canvas */
-        #camera-container, #canvas-container, #input-container {
+        #camera-container, #canvas-container {
             position: relative;
             width: 100%;
             max-width: 500px;
             margin: auto;
         }
-        #camera, #canvas, #uploaded-image-preview {
+        #camera, #canvas {
             width: 100%;
             height: auto;
             border-radius: 0.5rem;
             display: block;
-        }
-        #camera-overlay-frame {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Allows clicks to go through to the video/buttons */
-            z-index: 10;
-            border-radius: 0.5rem;
         }
          /* Modal styles */
         .modal {
@@ -67,29 +61,26 @@
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-5xl font-bold text-indigo-600 dark:text-indigo-400">Virtual Photobooth</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">Buat fotomu dengan frame spesial kami!</p>
+            <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">Create fun pictures with our Twibbon frames!</p>
         </header>
 
         <main class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6">
             <!-- Camera/Upload and Canvas View -->
             <div id="photobooth-area" class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <!-- Left Side: Camera or Uploaded Image with Frame Overlay -->
+                <!-- Left Side: Camera or Uploaded Image -->
                 <div id="input-container" class="space-y-4">
                     <div id="camera-container" class="bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
                         <video id="camera" autoplay playsinline></video>
                     </div>
-                     <div id="upload-placeholder" class="hidden text-center p-8 border-2 border-dashed rounded-lg bg-gray-200 dark:bg-gray-700">
-                        <p>Gambar yang Anda unggah akan muncul di sini.</p>
+                     <div id="upload-placeholder" class="hidden text-center p-8 border-2 border-dashed rounded-lg">
+                        <p>Your uploaded image will appear here.</p>
                         <img id="uploaded-image-preview" src="" class="max-w-full h-auto mx-auto rounded-lg mt-4" alt="Uploaded Preview"/>
                     </div>
-                    <!-- Frame Overlay -->
-                    <img src="https://res.cloudinary.com/dmohlnblw/image/upload/Untitled_design_6_nny4vb.png" id="camera-overlay-frame" alt="Frame Overlay">
-
                     <div class="flex flex-wrap justify-center gap-2">
-                        <button id="start-camera-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Buka Kamera</button>
-                        <button id="capture-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" disabled>Ambil Foto</button>
+                        <button id="start-camera-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Start Camera</button>
+                        <button id="capture-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" disabled>Capture</button>
                         <input type="file" id="upload-btn" class="hidden" accept="image/*">
-                        <label for="upload-btn" class="flex-1 text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors duration-300">Unggah Foto</label>
+                        <label for="upload-btn" class="flex-1 text-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors duration-300">Upload Photo</label>
                     </div>
                 </div>
 
@@ -99,14 +90,20 @@
                         <canvas id="canvas"></canvas>
                     </div>
                     <div class="text-center">
-                       <button id="download-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" disabled>Unduh Gambar</button>
+                       <button id="download-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300" disabled>Download Image</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Reset Button -->
+            <!-- Twibbon Frame Selection -->
+            <div id="twibbon-gallery" class="mt-12">
+                <h2 class="text-2xl font-bold text-center mb-6">Choose a Frame</h2>
+                <div id="frames" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <!-- Frame images will be inserted here by JavaScript -->
+                </div>
+            </div>
              <div class="mt-8 text-center">
-                <button id="reset-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Ulangi</button>
+                <button id="reset-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Start Over</button>
             </div>
         </main>
     </div>
@@ -116,7 +113,7 @@
         <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl">
             <h3 class="text-xl font-bold text-red-500 mb-4">Error</h3>
             <p id="error-message" class="text-gray-700 dark:text-gray-300"></p>
-            <button id="close-modal-btn" class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Tutup</button>
+            <button id="close-modal-btn" class="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Close</button>
         </div>
     </div>
 
@@ -133,30 +130,33 @@
             const uploadedImagePreview = document.getElementById('uploaded-image-preview');
             const uploadPlaceholder = document.getElementById('upload-placeholder');
             const cameraContainer = document.getElementById('camera-container');
-            const cameraOverlayFrame = document.getElementById('camera-overlay-frame');
             const downloadBtn = document.getElementById('download-btn');
             const resetBtn = document.getElementById('reset-btn');
+            const framesContainer = document.getElementById('frames');
             const errorModal = document.getElementById('error-modal');
             const errorMessage = document.getElementById('error-message');
             const closeModalBtn = document.getElementById('close-modal-btn');
 
+
             let stream;
-            let currentFrame = new Image();
+            let currentFrame = null;
             let userImage = null;
-            const defaultFrameSrc = 'https://res.cloudinary.com/dmohlnblw/image/upload/Untitled_design_6_nny4vb.png';
+
+            // --- Twibbon Frames ---
+            const frames = [
+                'https://res.cloudinary.com/dmohlnblw/image/upload/Untitled_design_6_nny4vb.png', // New user frame
+                'https://i.ibb.co/L5hSsD1/frame1.png',
+                'https://i.ibb.co/YcKvwvG/frame2.png',
+                'https://i.ibb.co/3sKFJjB/frame3.png',
+                'https://i.ibb.co/VMyM2M2/frame4.png',
+                'https://i.ibb.co/4MQLgP1/frame5.png',
+            ];
 
             // --- Functions ---
 
             // Initialize the app state
             function init() {
-                // Pre-load the default frame
-                currentFrame.crossOrigin = "anonymous";
-                currentFrame.src = defaultFrameSrc;
-                currentFrame.onerror = () => {
-                    showError("Frame Twibbon gagal dimuat. Silakan muat ulang halaman.");
-                    cameraOverlayFrame.style.display = 'none'; // Hide broken frame
-                };
-                
+                loadFrames();
                 setupEventListeners();
                 setCanvasPlaceholder();
             }
@@ -172,10 +172,27 @@
                 errorModal.classList.remove('flex');
             }
 
+            // Load Twibbon frames into the gallery
+            function loadFrames() {
+                frames.forEach((src, index) => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = `Frame ${index + 1}`;
+                    img.crossOrigin = "anonymous";
+                    img.onerror = () => {
+                        img.src = `https://placehold.co/500x500/fee2e2/ef4444?text=Error+Loading&font=inter`;
+                        img.alt = 'Error loading frame';
+                    };
+                    img.className = 'w-full h-auto cursor-pointer rounded-lg border-2 border-transparent hover:border-indigo-500 transition-all duration-200';
+                    img.addEventListener('click', () => selectFrame(img, src));
+                    framesContainer.appendChild(img);
+                });
+            }
+
             // Set a placeholder message on the canvas with portrait ratio
             function setCanvasPlaceholder() {
                 const canvasRatio = 16 / 9; // Portrait 9:16 aspect ratio
-                canvas.width = canvas.parentElement.offsetWidth || 300;
+                canvas.width = canvas.parentElement.offsetWidth;
                 canvas.height = canvas.width * canvasRatio;
                 context.fillStyle = '#E5E7EB'; // gray-200
                  if (document.documentElement.classList.contains('dark')) {
@@ -185,7 +202,7 @@
                 context.fillStyle = document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#4B5563';
                 context.font = '16px Inter';
                 context.textAlign = 'center';
-                context.fillText('Hasil foto akan muncul di sini', canvas.width / 2, canvas.height / 2);
+                context.fillText('Your final image will appear here', canvas.width / 2, canvas.height / 2);
             }
             
             // Start the webcam
@@ -194,31 +211,22 @@
                     if (stream) {
                         stream.getTracks().forEach(track => track.stop());
                     }
-                    // Request video with portrait-friendly aspect ratio
-                    const constraints = {
-                        video: { 
-                            facingMode: 'user',
-                            width: { ideal: 720 },
-                            height: { ideal: 1280 }
-                        }
-                    };
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
                     camera.srcObject = stream;
                     camera.style.display = 'block';
-                    cameraOverlayFrame.style.display = 'block';
                     uploadPlaceholder.style.display = 'none';
                     cameraContainer.style.display = 'block';
                     
                     camera.onloadedmetadata = () => {
                         captureBtn.disabled = false;
-                        startCameraBtn.textContent = 'Ganti Kamera';
+                        startCameraBtn.textContent = 'Switch Camera';
                     };
                 } catch (err) {
                      console.error("Camera Error:", err);
                      if (err.name === 'NotAllowedError') {
-                        showError('Akses kamera ditolak. Mohon izinkan akses kamera pada pengaturan browser Anda.');
+                        showError('Camera access was denied. Please allow camera access in your browser settings to use this feature.');
                     } else {
-                        showError('Tidak dapat mengakses kamera. Pastikan tidak digunakan oleh aplikasi lain.');
+                        showError('Could not access the camera. Please ensure it is not being used by another application.');
                     }
                 }
             }
@@ -245,10 +253,9 @@
                         camera.style.display = 'none';
                         cameraContainer.style.display = 'none';
                         uploadPlaceholder.style.display = 'block';
-                        cameraOverlayFrame.style.display = 'block';
                         
                         captureBtn.disabled = true;
-                        startCameraBtn.textContent = 'Buka Kamera';
+                        startCameraBtn.textContent = 'Start Camera';
                     };
                     reader.readAsDataURL(file);
                 }
@@ -257,12 +264,29 @@
             // Capture a photo from the video stream
             function capturePhoto() {
                 if (!stream) {
-                    showError("Kamera tidak aktif.");
+                    showError("Camera is not active.");
                     return;
                 }
                 userImage = camera;
                 drawOnCanvas();
                 downloadBtn.disabled = false;
+            }
+
+            // Select a frame
+            function selectFrame(imgElement, frameSrc) {
+                document.querySelectorAll('#frames img').forEach(img => img.classList.remove('frame-selected'));
+                imgElement.classList.add('frame-selected');
+
+                currentFrame = new Image();
+                currentFrame.crossOrigin = "anonymous";
+                currentFrame.onload = () => {
+                    drawOnCanvas();
+                };
+                 currentFrame.onerror = () => {
+                    showError("The selected frame could not be loaded. Please try another one.");
+                    drawOnCanvas(); 
+                };
+                currentFrame.src = frameSrc;
             }
 
             // Draw the user image and frame on the canvas, cropping to fit the portrait ratio
@@ -273,8 +297,8 @@
                 };
 
                 const PORTRAIT_ASPECT_RATIO = 16 / 9;
-                canvas.width = 720; // Set a fixed higher resolution for better quality
-                canvas.height = 1280;
+                canvas.width = canvas.parentElement.offsetWidth;
+                canvas.height = canvas.width * PORTRAIT_ASPECT_RATIO;
                 
                 context.fillStyle = '#000';
                 context.fillRect(0, 0, canvas.width, canvas.height);
@@ -291,10 +315,12 @@
 
                 // Logic to crop the image to fit the canvas (like background-size: cover)
                 if (imageAspectRatio < canvasAspectRatio) {
+                    // Image is wider than canvas, so crop left/right
                     sourceHeight = imageHeight;
                     sourceWidth = sourceHeight / canvasAspectRatio;
                     sourceX = (imageWidth - sourceWidth) / 2;
                 } else {
+                    // Image is taller than canvas, so crop top/bottom
                     sourceWidth = imageWidth;
                     sourceHeight = sourceWidth * canvasAspectRatio;
                     sourceY = (imageHeight - sourceHeight) / 2;
@@ -311,11 +337,11 @@
             // Download the final image
             function downloadImage() {
                 if (!userImage) {
-                    showError("Tidak ada gambar untuk diunduh. Silakan ambil atau unggah foto terlebih dahulu.");
+                    showError("No image to download. Please capture or upload a photo first.");
                     return;
                 }
                 const link = document.createElement('a');
-                link.download = 'photobooth-imdp-2025.png';
+                link.download = 'photobooth-creation.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             }
@@ -328,18 +354,19 @@
                 camera.srcObject = null;
                 stream = null;
                 camera.style.display = 'block';
-                cameraOverlayFrame.style.display = 'block';
 
                 userImage = null;
+                currentFrame = null;
 
                 setCanvasPlaceholder();
+                document.querySelectorAll('#frames img').forEach(img => img.classList.remove('frame-selected'));
                 captureBtn.disabled = true;
                 downloadBtn.disabled = true;
                 uploadBtn.value = '';
                 uploadedImagePreview.src = '';
                 uploadPlaceholder.style.display = 'none';
                 cameraContainer.style.display = 'block';
-                startCameraBtn.textContent = 'Buka Kamera';
+                startCameraBtn.textContent = 'Start Camera';
             }
 
             // --- Event Listeners ---
@@ -351,10 +378,7 @@
                 resetBtn.addEventListener('click', resetApp);
                 closeModalBtn.addEventListener('click', hideError);
                 window.addEventListener('resize', () => {
-                   // Redraw placeholder if no image exists
-                   if (!userImage) {
-                       setCanvasPlaceholder();
-                   }
+                   drawOnCanvas();
                 });
 
             }
